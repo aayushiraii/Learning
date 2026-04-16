@@ -3,6 +3,11 @@
 # name = input("Hi,What is your name")
 # print(name)
 
+a=10
+b=9
+sum=a+b
+print(type(sum))
+
 #sum 
 a=10
 b=9
@@ -95,3 +100,43 @@ for word in Words:
         if char in V:
             print(word)
             break
+
+name="Aayushi"
+print(name[::-1])
+
+name="Aayushi"
+rev_name=""
+for ch in name:
+    rev_name=ch+rev_name
+print(rev_name)
+
+word="bitcot" 
+for ch in word:
+    print(ch)
+
+password="1234"
+your_password=input("Enter Your password")
+if password== your_password:
+        print("Valid")
+else:
+    print("Invaild")
+
+num=int(input("Enter Your Number"))
+if num>0:
+    print("Positive")
+elif num<0:
+    print("Negtive")
+else:
+    print("Zero")
+
+for i in range(1,15):
+    print(i*2)
+
+word="aayushi"
+print(word.upper())
+
+word="aayushi"
+print(word.replace("aayushi", "words"))
+
+
+
