@@ -1,43 +1,8 @@
-# print("hi")
-# print("thamarai")
-# name = input("Hi,What is your name")
-# print(name)
-
-#sum 
-a=10
-b=9
-sum=a+b
-print(sum)
-
-#list
-marks=[90,98,97,95,92]
-print(marks[0])
-marks.append(5)
-print(marks)
-
 n=8
 for i in range (1,n+1):
     for j in range (1,i+1):
         print(j,end=" ")
     print()
-
-country={"India" : "Delhi",
-         "Korea" : "seoul",
-         "japan" : "Tokyo"}
-print(country)
-print(country.keys())
-print(country.values())
-print(country.get("India"))
-
-if country.get("Japan"):
-    print("Yes")
-else:
-    print("NOT FOUND")
-
-#sets
-Sets={1,5,3,3,3,5,6}
-#print(Sets)
-Sets.pop()
 
 num=[3,8,7,8]
 for i in num:
@@ -57,6 +22,7 @@ for i in range(9):
     if i==8:
         continue
     print(i)
+
 
 names=["Aayushi","Adi","Thama"]
 search="Adi"
@@ -95,3 +61,16 @@ for word in Words:
         if char in V:
             print(word)
             break
+
+name="Aayushi"
+print(name[::-1])
+
+name="Aayushi"
+rev_name=""
+for ch in name:
+    rev_name=ch+rev_name
+print(rev_name)
+
+word="bitcot" 
+for ch in word:
+    print(ch)
