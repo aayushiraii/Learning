@@ -1,0 +1,21 @@
+item_id,name,quantity,price
+1,Keyboard,5,499.99
+2,Mouse,25,199.99
+3,Monitor,2,8999.99
+4,USB Cable,-5,99.99
+5,Laptop,8,55999.99
+6,Headphones,15,1299.50
+7,Webcam,3,2499.00
+8,Desk Chair,12,6999.99
+9,Smartphone,0,29999.99
+10,Tablet,6,19999.99
+11,Charger,50,499.00
+12,Power Bank,4,1499.99
+13,SSD 1TB,9,7499.00
+14,Hard Drive 2TB,11,5999.00
+15,Graphics Card,1,45999.99
+16,RAM 16GB,7,3499.99
+17,Router,2,1999.99
+18,Printer,5,8999.99
+19,Scanner,0,4999.99
+20,Microphone,3,2999.99
