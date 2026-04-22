@@ -14,34 +14,58 @@ class Item(BaseModel):
 
 # Read CSV
 def read_csv(file):
-    with open(file, newline='') as f:
-        return list(csv.DictReader(f))
+    try:
+        with open(file, newline='') as f:
+            return list(csv.DictReader(f))
+    except FileNotFoundError:
+        print("File not found!")
+        return []
+    except Exception as e:
+        print("Error reading file:", e)
+        return []
 
 # Validate data
 def validate(data):
     valid_items = []
+
     for row in data:
         try:
             item = Item(**row)
             valid_items.append(item)
+
         except ValidationError as e:
             logging.error(f"Error in row {row}: {e}")
+            print("Skipping bad data:", row)
+
+        except Exception as e:
+            logging.error(f"Unexpected error in row {row}: {e}")
+            print("Unexpected error:", row)
+
     return valid_items
 
 # Low stock report
 def low_stock(items, threshold=10):
-    return [item for item in items if item.quantity < threshold]
+    try:
+        return [item for item in items if item.quantity < threshold]
+    except Exception as e:
+        print("Error in low_stock:", e)
+        return []
 
 # Main
 def main():
-    data = read_csv("inventory.csv")
-    items = validate(data)
+    try:
+        data = read_csv("inventory.csv")
+        items = validate(data)
 
-    low_items = low_stock(items)
+        low_items = low_stock(items)
 
-    print("\nLow Stock Items:")
-    for item in low_items:
-        print(f"{item.name} (Qty: {item.quantity})")
+        print("\nLow Stock Items:")
+        for item in low_items:
+            print(f"{item.name} (Qty: {item.quantity})")
 
+    except Exception as e:
+        print("Something went wrong in main:", e)
+
+# Run program
 if __name__ == "__main__":
     main()
