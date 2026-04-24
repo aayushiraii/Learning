@@ -9,9 +9,9 @@ logging.basicConfig(filename="errors.log", level=logging.ERROR)
 app = FastAPI()
 
 
-# -------------------
+
 # MODEL
-# -------------------
+
 class Item(BaseModel):
     item_id: int
     name: str
@@ -19,9 +19,9 @@ class Item(BaseModel):
     price: float = Field(gt=0)
 
 
-# -------------------
+
 # OCP: FILE READER
-# -------------------
+
 class FileReader:
     def read(self, file):
         raise NotImplementedError
@@ -40,9 +40,9 @@ class CSVReader(FileReader):
             return []
 
 
-# -------------------
+
 # VALIDATION
-# -------------------
+
 def validate(data):
     valid_items = []
 
@@ -59,9 +59,9 @@ def validate(data):
     return valid_items
 
 
-# -------------------
+
 # OCP: FILTERS
-# -------------------
+
 class Filter:
     def apply(self, item):
         raise NotImplementedError
@@ -79,9 +79,9 @@ def filter_items(items, filter_strategy):
     return [item for item in items if filter_strategy.apply(item)]
 
 
-# -------------------
+
 # HELPERS
-# -------------------
+
 FILE_NAME = "inventory.csv"
 
 
@@ -96,7 +96,6 @@ def save_item(item: Item):
         with open(FILE_NAME, mode="a", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=item.model_dump().keys())
 
-            # write header if file empty
             if f.tell() == 0:
                 writer.writeheader()
 
@@ -106,26 +105,34 @@ def save_item(item: Item):
         print("Error saving item:", e)
 
 
-# -------------------
-# ROUTES
-# -------------------
+# ROUTES 
 
-# GET all items
+
 @app.get("/items")
 def get_items():
-    return load_items()
+    try:
+        return load_items()
+    except Exception as e:
+        logging.error(f"Error fetching items: {e}")
+        return {"error": "Something went wrong while fetching items"}
 
 
-# GET low stock items
 @app.get("/low-stock")
 def get_low_stock():
-    items = load_items()
-    low_filter = LowStockFilter(10)
-    return filter_items(items, low_filter)
+    try:
+        items = load_items()
+        low_filter = LowStockFilter(10)
+        return filter_items(items, low_filter)
+    except Exception as e:
+        logging.error(f"Error fetching low stock items: {e}")
+        return {"error": "Something went wrong while filtering items"}
 
 
-# POST new item
 @app.post("/items")
 def add_item(item: Item):
-    save_item(item)
-    return {"message": "Item added successfully"}
+    try:
+        save_item(item)
+        return {"message": "Item added successfully"}
+    except Exception as e:
+        logging.error(f"Error adding item {item}: {e}")
+        return {"error": "Failed to add item"}
