@@ -65,4 +65,11 @@ def greet(*names):
 
 greet("Aayushi","Thama","Jaya","Bharthi")
 
+def name(fname,lname):
+    return(fname,lname)
+print(name(lname="aayushi",fname="rai"))
 
+
+def name(fname,lname):
+    return(fname,lname)
+print(name(lname=23,fname="rai"))
