@@ -12,9 +12,12 @@ app = FastAPI()
 
 # DB session
 def get_db():
-    db = SessionLocal()
     try:
+        db = SessionLocal()
         yield db
+    except Exception as e:
+        print(f"DB Session Error: {e}")
+        raise HTTPException(status_code=500, detail="Database connection error")
     finally:
         db.close()
 
@@ -27,7 +30,11 @@ def home():
     Returns:
         dict: Simple status message.
     """
-    return {"message": "API is running"}
+    try:
+        return {"message": "API is running"}
+    except Exception as e:
+        print(f"Home Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # CREATE
@@ -35,16 +42,15 @@ def home():
 def create_user(name: str, email: str, db: Session = Depends(get_db)):
     """
     Creates a new User
-
-    Args:
-        name (str): Name of the user.
-        email (str): Email of the user.
-        db (Session): Database session dependency.
-
-    Returns:
-        The new user that has been added
     """
-    return crud.create_user(db, name, email)
+    try:
+        user = crud.create_user(db, name, email)
+        if not user:
+            raise HTTPException(status_code=400, detail="User not created")
+        return user
+    except Exception as e:
+        print(f"Create Error: {e}")
+        raise HTTPException(status_code=500, detail="Error creating user")
 
 
 # READ ALL
@@ -52,14 +58,12 @@ def create_user(name: str, email: str, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db)):
     """
     Reads all the users in the Database
-
-    Args:
-        db (Session): Database session dependency.
-
-    Returns:
-        Gives all the users
     """
-    return crud.get_users(db)
+    try:
+        return crud.get_users(db)
+    except Exception as e:
+        print(f"Get Users Error: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching users")
 
 
 # READ ONE
@@ -67,18 +71,17 @@ def get_users(db: Session = Depends(get_db)):
 def get_user(user_id: int, db: Session = Depends(get_db)):
     """
     Reads only specific Users with the requested Users Id
-
-    Args:
-        user_id (int): ID of the user to retrieve.
-        db (Session): Database session dependency.
-
-    Returns:
-        The requested user Id
     """
-    user = crud.get_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    try:
+        user = crud.get_user(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Get User Error: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching user")
 
 
 # UPDATE
@@ -86,20 +89,17 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 def update_user(user_id: int, name: str = None, email: str = None, db: Session = Depends(get_db)):
     """
     Updates the existing user
-
-    Args:
-        user_id (int): ID of the user to update.
-        name (str, optional): New name of the user.
-        email (str, optional): New email of the user.
-        db (Session): Database session dependency.
-
-    Returns:
-        The updated user in place of the previous user
     """
-    user = crud.update_user(db, user_id, name, email)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    try:
+        user = crud.update_user(db, user_id, name, email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Update Error: {e}")
+        raise HTTPException(status_code=500, detail="Error updating user")
 
 
 # DELETE
@@ -107,15 +107,14 @@ def update_user(user_id: int, name: str = None, email: str = None, db: Session =
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     """
     Deletes the requested user
-
-    Args:
-        user_id (int): ID of the user to delete.
-        db (Session): Database session dependency.
-
-    Returns:
-        User deleted message
     """
-    user = crud.delete_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted"}
+    try:
+        user = crud.delete_user(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"message": "User deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Delete Error: {e}")
+        raise HTTPException(status_code=500, detail="Error deleting user")
