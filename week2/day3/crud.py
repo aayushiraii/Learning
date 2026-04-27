@@ -4,16 +4,18 @@ import schemas
 
 
 #User
-def create_user(db: Session, user: schemas.UserCreate) -> User:
-    """
-    Create a new user.
-    """
+def create_user(db: Session, user: schemas.UserCreate) -> User | None:
+   
+    existing_user = db.query(User).filter(User.email == user.email).first()
+
+    if existing_user:
+        return None
+
     db_user = User(name=user.name, email=user.email)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
-
 
 def get_user(db: Session, user_id: int) -> User | None:
     """
@@ -22,13 +24,15 @@ def get_user(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def update_user(db: Session, user_id: int, user: schemas.UserCreate) -> User | None:
-    """
-    Update a user.
-    """
+def update_user(db: Session, user_id: int, user: schemas.UserCreate):
     db_user = db.query(User).filter(User.id == user_id).first()
 
     if not db_user:
+        return None
+
+    
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user and existing_user.id != user_id:
         return None
 
     db_user.name = user.name

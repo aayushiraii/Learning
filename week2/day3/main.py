@@ -30,20 +30,22 @@ def get_db():
 # USER ROUTES
 
 
+from sqlalchemy.exc import IntegrityError
+
 @app.post("/users", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """
-    Create a new user.
-
-    Args:
-        user (UserCreate): User data (name, email)
-        db (Session): Database session
-
-    Returns:
-        UserResponse: Created user object
-    """
     try:
-        return crud.create_user(db, user)
+        new_user = crud.create_user(db, user)
+
+        if not new_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        return new_user
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Email already exists")
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

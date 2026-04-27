@@ -4,18 +4,15 @@ from database import Base
 
 
 # USER 
+#from sqlalchemy import Column, Integer, String
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-
-    categories = relationship(
-        "Category",
-        back_populates="owner",
-        cascade="all, delete"
-    )
+    email = Column(String, unique=True, index=True, nullable=False)
+    dept=Column(String)
 
 
 # CATEGORY 

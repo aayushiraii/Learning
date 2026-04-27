@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,EmailStr
 
 
 # ITEM 
@@ -40,8 +40,8 @@ class CategoryResponse(CategoryCreate):
 
 # USER 
 class UserCreate(BaseModel):
-    name: str
-    email: str
+    name: str = Field(min_length=2, max_length=50)
+    email: EmailStr
 
 
 class UserUpdate(BaseModel):
