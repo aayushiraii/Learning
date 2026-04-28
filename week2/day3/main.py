@@ -299,7 +299,7 @@ def create_item(category_id: int, item: schemas.ItemCreate, db: Session = Depend
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
-    
+
 @app.get("/items")
 def get_all_items(db: Session = Depends(get_db)):
     """
@@ -434,33 +434,3 @@ def delete_all_items(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# =========================
-# JOINED DATA
-# =========================
-@app.get("/items/full")
-def get_full_items(db: Session = Depends(get_db)):
-    """
-    Retrieve items along with their category details.
-
-    Args:
-        db (Session): Database session
-
-    Returns:
-        List[dict]: List of items with category name, price, and quantity
-
-    Raises:
-        HTTPException: If an error occurs
-    """
-    try:
-        return (
-            db.query(
-                models.Item.name.label("item_name"),
-                models.Item.price.label("price"),
-                models.Item.quantity.label("quantity"),
-                models.Category.name.label("category_name"),
-            )
-            .join(models.Category, models.Item.category_id == models.Category.id)
-            .all()
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
