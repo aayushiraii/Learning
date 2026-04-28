@@ -5,10 +5,9 @@ from pydantic import BaseModel, Field, EmailStr
 # ITEM
 # =========================
 class ItemCreate(BaseModel):
-    name: str
-    quantity: int
-    price: int
-
+    name: str = Field(min_length=2, max_length=50)
+    quantity: int = Field(ge=0)
+    price: int = Field(gt=0)
 
 class ItemUpdate(BaseModel):
     name: str

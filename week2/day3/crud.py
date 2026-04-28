@@ -53,16 +53,17 @@ def update_user(db: Session, user_id: int, user: schemas.UserCreate) -> User | N
 # =========================
 # CATEGORY
 # =========================
-def create_category(db: Session, name: str) -> Category:
-    """
-    Create a category (no user relation).
-    """
+def create_category(db: Session, name: str) -> Category | None:
+    existing = db.query(Category).filter(Category.name == name).first()
+
+    if existing:
+        return None
+
     category = Category(name=name)
     db.add(category)
     db.commit()
     db.refresh(category)
     return category
-
 
 def update_category(db: Session, category_id: int, name: str) -> Category | None:
     """
@@ -83,12 +84,24 @@ def update_category(db: Session, category_id: int, name: str) -> Category | None
 # =========================
 # ITEM
 # =========================
-def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item:
+def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item | None:
     """
-    Create an item inside a category.
+    Create item only if it doesn't already exist in the category.
     """
+
+   
+    item_name = item.name.strip().lower()
+
+    existing = db.query(Item).filter(
+        Item.name == item_name,
+        Item.category_id == category_id
+    ).first()
+
+    if existing:
+        return None
+
     db_item = Item(
-        name=item.name,
+        name=item_name,
         quantity=item.quantity,
         price=item.price,
         category_id=category_id
@@ -98,7 +111,6 @@ def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item
     db.commit()
     db.refresh(db_item)
     return db_item
-
 
 def update_item(db: Session, item_id: int, item: schemas.ItemCreate) -> Item | None:
     """

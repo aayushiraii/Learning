@@ -174,23 +174,18 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 def create_category(data: schemas.CategoryCreate, db: Session = Depends(get_db)):
     """
     Create a new category.
-
-    Args:
-        data (CategoryCreate): Category data
-        db (Session): Database session
-
-    Returns:
-        Category: Created category object
-
-    Raises:
-        HTTPException: If an error occurs
     """
     try:
-        return crud.create_category(db, data.name)
+        category = crud.create_category(db, data.name)
+
+        if not category:
+            raise HTTPException(status_code=400, detail="Category already exists")
+
+        return category
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/categories")
 def get_all_categories(db: Session = Depends(get_db)):
@@ -281,19 +276,9 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
 def create_item(category_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
     """
     Create a new item in a category.
-
-    Args:
-        category_id (int): ID of the category
-        item (ItemCreate): Item data
-        db (Session): Database session
-
-    Returns:
-        Item: Created item object
-
-    Raises:
-        HTTPException: If category not found or error occurs
     """
     try:
+        # check if category exists
         category = db.query(models.Category).filter(
             models.Category.id == category_id
         ).first()
@@ -301,13 +286,20 @@ def create_item(category_id: int, item: schemas.ItemCreate, db: Session = Depend
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
 
-        return crud.create_item(db, item, category_id)
+        # create item
+        new_item = crud.create_item(db, item, category_id)
+
+        # check duplicate
+        if not new_item:
+            raise HTTPException(status_code=400, detail="Item already exists")
+
+        return new_item
 
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
-
+    
+    
 @app.get("/items")
 def get_all_items(db: Session = Depends(get_db)):
     """
