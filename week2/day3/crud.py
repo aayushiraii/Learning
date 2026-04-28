@@ -3,9 +3,13 @@ from models import User, Category, Item
 import schemas
 
 
-#User
+# =========================
+# USER
+# =========================
 def create_user(db: Session, user: schemas.UserCreate) -> User | None:
-   
+    """
+    Create a new user if email is unique.
+    """
     existing_user = db.query(User).filter(User.email == user.email).first()
 
     if existing_user:
@@ -17,6 +21,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> User | None:
     db.refresh(db_user)
     return db_user
 
+
 def get_user(db: Session, user_id: int) -> User | None:
     """
     Get a user by ID.
@@ -24,13 +29,15 @@ def get_user(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def update_user(db: Session, user_id: int, user: schemas.UserCreate):
+def update_user(db: Session, user_id: int, user: schemas.UserCreate) -> User | None:
+    """
+    Update a user's name and email.
+    """
     db_user = db.query(User).filter(User.id == user_id).first()
 
     if not db_user:
         return None
 
-    
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user and existing_user.id != user_id:
         return None
@@ -43,13 +50,14 @@ def update_user(db: Session, user_id: int, user: schemas.UserCreate):
     return db_user
 
 
-#Category 
-
-def create_category(db: Session, name: str, user_id: int) -> Category:
+# =========================
+# CATEGORY
+# =========================
+def create_category(db: Session, name: str) -> Category:
     """
-    Create a category for a user.
+    Create a category (no user relation).
     """
-    category = Category(name=name, owner_id=user_id)
+    category = Category(name=name)
     db.add(category)
     db.commit()
     db.refresh(category)
@@ -71,8 +79,10 @@ def update_category(db: Session, category_id: int, name: str) -> Category | None
     db.refresh(category)
     return category
 
-#Items
 
+# =========================
+# ITEM
+# =========================
 def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item:
     """
     Create an item inside a category.

@@ -3,32 +3,26 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-# USER 
-#from sqlalchemy import Column, Integer, String
-
+# =========================
+# USER
+# =========================
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    dept=Column(String)
+    dept = Column(String)
 
 
-# CATEGORY 
+# =========================
+# CATEGORY
+# =========================
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-
-    owner_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
-    )
-
-    owner = relationship("User", back_populates="categories")
 
     items = relationship(
         "Item",
@@ -37,7 +31,9 @@ class Category(Base):
     )
 
 
-# ITEM 
+# =========================
+# ITEM
+# =========================
 class Item(Base):
     __tablename__ = "items"
 

@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
 import models, schemas, crud
 from database import SessionLocal, engine
 
@@ -9,12 +11,12 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-
+# =========================
 # DB SESSION
-
+# =========================
 def get_db():
     """
-    Provides a database session for each request.
+    Provide a database session for each request.
 
     Yields:
         Session: SQLAlchemy database session
@@ -26,14 +28,24 @@ def get_db():
         db.close()
 
 
-
+# =========================
 # USER ROUTES
-
-
-from sqlalchemy.exc import IntegrityError
-
+# =========================
 @app.post("/users", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    Create a new user.
+
+    Args:
+        user (UserCreate): Input user data (name, email)
+        db (Session): Database session
+
+    Returns:
+        UserResponse: The created user object
+
+    Raises:
+        HTTPException: If email already exists or any server error occurs
+    """
     try:
         new_user = crud.create_user(db, user)
 
@@ -54,15 +66,21 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @app.get("/users", response_model=list[schemas.UserResponse])
 def get_all_users(db: Session = Depends(get_db)):
     """
-    Retrieve all users.
+    Retrieve all users from the database.
 
     Args:
         db (Session): Database session
 
     Returns:
-        List[UserResponse]: List of users
+        List[UserResponse]: List of all users
+
+    Raises:
+        HTTPException: If a server error occurs
     """
-    return db.query(models.User).all()
+    try:
+        return db.query(models.User).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/users/{user_id}", response_model=schemas.UserResponse)
@@ -75,89 +93,100 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         db (Session): Database session
 
     Returns:
-        UserResponse: User object
+        UserResponse: User details
 
     Raises:
-        HTTPException: If user not found
+        HTTPException: If user is not found or error occurs
     """
-    user = crud.get_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    try:
+        user = crud.get_user(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.put("/users/{user_id}", response_model=schemas.UserResponse)
 def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
-    Update a user.
+    Update an existing user.
 
     Args:
-        user_id (int): ID of the user
+        user_id (int): ID of the user to update
         user (UserCreate): Updated user data
         db (Session): Database session
 
     Returns:
-        UserResponse: Updated user
+        UserResponse: Updated user object
 
     Raises:
-        HTTPException: If user not found
+        HTTPException: If user not found or error occurs
     """
-    updated_user = crud.update_user(db, user_id, user)
-    if not updated_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return updated_user
-
-
-@app.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    """
-    Delete a user.
-
-    Args:
-        user_id (int): ID of the user
-        db (Session): Database session
-
-    Returns:
-        dict: Success message
-    """
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     try:
-        db.delete(user)
-        db.commit()
-        return {"message": "User deleted"}
+        updated_user = crud.update_user(db, user_id, user)
+
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return updated_user
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-# CATEGORY ROUTES
-
-
-@app.post("/users/{user_id}/categories")
-def create_category(user_id: int, data: schemas.CategoryCreate, db: Session = Depends(get_db)):
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     """
-    Create a category for a specific user.
+    Delete a user by ID.
 
     Args:
-        user_id (int): Owner user ID
+        user_id (int): ID of the user to delete
+        db (Session): Database session
+
+    Returns:
+        dict: Confirmation message
+
+    Raises:
+        HTTPException: If user not found or error occurs
+    """
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        db.delete(user)
+        db.commit()
+
+        return {"message": "User deleted"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
+# CATEGORY ROUTES
+# =========================
+@app.post("/categories")
+def create_category(data: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    """
+    Create a new category.
+
+    Args:
         data (CategoryCreate): Category data
         db (Session): Database session
 
     Returns:
-        Category: Created category
+        Category: Created category object
+
+    Raises:
+        HTTPException: If an error occurs
     """
-    user = crud.get_user(db, user_id)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     try:
-        return crud.create_category(db, data.name, user_id)
+        return crud.create_category(db, data.name)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -168,24 +197,19 @@ def get_all_categories(db: Session = Depends(get_db)):
     """
     Retrieve all categories.
 
+    Args:
+        db (Session): Database session
+
     Returns:
         List[Category]: List of categories
+
+    Raises:
+        HTTPException: If an error occurs
     """
-    return db.query(models.Category).all()
-
-
-@app.get("/users/{user_id}/categories")
-def get_user_categories(user_id: int, db: Session = Depends(get_db)):
-    """
-    Retrieve all categories for a specific user.
-
-    Args:
-        user_id (int): User ID
-
-    Returns:
-        List[Category]: Categories belonging to the user
-    """
-    return db.query(models.Category).filter(models.Category.owner_id == user_id).all()
+    try:
+        return db.query(models.Category).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.put("/categories/{category_id}")
@@ -194,63 +218,91 @@ def update_category(category_id: int, data: schemas.CategoryCreate, db: Session 
     Update a category.
 
     Args:
-        category_id (int): Category ID
+        category_id (int): ID of the category
         data (CategoryCreate): Updated data
+        db (Session): Database session
 
     Returns:
-        Category: Updated category
+        Category: Updated category object
+
+    Raises:
+        HTTPException: If category not found or error occurs
     """
-    updated_category = crud.update_category(db, category_id, data.name)
-
-    if not updated_category:
-        raise HTTPException(status_code=404, detail="Category not found")
-
-    return updated_category
-
-
-@app.delete("/categories/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
-    """
-    Delete a category and its items.
-
-    Args:
-        category_id (int): Category ID
-
-    Returns:
-        dict: Success message
-    """
-    category = db.query(models.Category).filter(models.Category.id == category_id).first()
-
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
-
     try:
-        db.delete(category)
-        db.commit()
-        return {"message": "Category deleted"}
+        updated_category = crud.update_category(db, category_id, data.name)
+
+        if not updated_category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        return updated_category
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.delete("/categories/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    """
+    Delete a category.
 
+    Args:
+        category_id (int): ID of the category
+        db (Session): Database session
+
+    Returns:
+        dict: Confirmation message
+
+    Raises:
+        HTTPException: If category not found or error occurs
+    """
+    try:
+        category = db.query(models.Category).filter(
+            models.Category.id == category_id
+        ).first()
+
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        db.delete(category)
+        db.commit()
+
+        return {"message": "Category deleted"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
 # ITEM ROUTES
-
-
+# =========================
 @app.post("/categories/{category_id}/items")
 def create_item(category_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
     """
-    Create an item inside a category.
+    Create a new item in a category.
 
     Args:
-        category_id (int): Category ID
+        category_id (int): ID of the category
         item (ItemCreate): Item data
+        db (Session): Database session
 
     Returns:
-        Item: Created item
+        Item: Created item object
+
+    Raises:
+        HTTPException: If category not found or error occurs
     """
     try:
+        category = db.query(models.Category).filter(
+            models.Category.id == category_id
+        ).first()
+
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
         return crud.create_item(db, item, category_id)
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -261,24 +313,50 @@ def get_all_items(db: Session = Depends(get_db)):
     """
     Retrieve all items.
 
+    Args:
+        db (Session): Database session
+
     Returns:
         List[Item]: List of items
+
+    Raises:
+        HTTPException: If an error occurs
     """
-    return db.query(models.Item).all()
+    try:
+        return db.query(models.Item).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/categories/{category_id}/items")
 def get_category_items(category_id: int, db: Session = Depends(get_db)):
     """
-    Retrieve all items in a category.
+    Retrieve items in a specific category.
 
     Args:
         category_id (int): Category ID
+        db (Session): Database session
 
     Returns:
         List[Item]: Items in the category
+
+    Raises:
+        HTTPException: If category not found or error occurs
     """
-    return db.query(models.Item).filter(models.Item.category_id == category_id).all()
+    try:
+        category = db.query(models.Category).filter(
+            models.Category.id == category_id
+        ).first()
+
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        return db.query(models.Item).filter(
+            models.Item.category_id == category_id
+        ).all()
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.put("/items/{item_id}")
@@ -289,38 +367,53 @@ def update_item(item_id: int, item: schemas.ItemCreate, db: Session = Depends(ge
     Args:
         item_id (int): Item ID
         item (ItemCreate): Updated item data
+        db (Session): Database session
 
     Returns:
-        Item: Updated item
+        Item: Updated item object
+
+    Raises:
+        HTTPException: If item not found or error occurs
     """
-    updated_item = crud.update_item(db, item_id, item)
+    try:
+        updated_item = crud.update_item(db, item_id, item)
 
-    if not updated_item:
-        raise HTTPException(status_code=404, detail="Item not found")
+        if not updated_item:
+            raise HTTPException(status_code=404, detail="Item not found")
 
-    return updated_item
+        return updated_item
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.delete("/items/{item_id}")
 def delete_item(item_id: int, db: Session = Depends(get_db)):
     """
-    Delete a specific item.
+    Delete an item.
 
     Args:
         item_id (int): Item ID
+        db (Session): Database session
 
     Returns:
-        dict: Success message
+        dict: Confirmation message
+
+    Raises:
+        HTTPException: If item not found or error occurs
     """
-    item = db.query(models.Item).filter(models.Item.id == item_id).first()
-
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-
     try:
+        item = db.query(models.Item).filter(models.Item.id == item_id).first()
+
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+
         db.delete(item)
         db.commit()
+
         return {"message": "Item deleted"}
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -331,8 +424,14 @@ def delete_all_items(db: Session = Depends(get_db)):
     """
     Delete all items from the database.
 
+    Args:
+        db (Session): Database session
+
     Returns:
         dict: Number of deleted items
+
+    Raises:
+        HTTPException: If an error occurs
     """
     try:
         deleted = db.query(models.Item).delete()
@@ -343,28 +442,33 @@ def delete_all_items(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
+# =========================
 # JOINED DATA
-
-
+# =========================
 @app.get("/items/full")
 def get_full_items(db: Session = Depends(get_db)):
     """
-    Retrieve items along with category and user details.
+    Retrieve items along with their category details.
+
+    Args:
+        db (Session): Database session
 
     Returns:
-        List[dict]: Joined data including item, category, user, price, quantity
+        List[dict]: List of items with category name, price, and quantity
+
+    Raises:
+        HTTPException: If an error occurs
     """
-    return (
-        db.query(
-            models.Item.name.label("item_name"),
-            models.Item.price.label("price"),
-            models.Item.quantity.label("quantity"),
-            models.Category.name.label("category_name"),
-            models.User.name.label("user_name"),
-            models.User.email.label("email"),
+    try:
+        return (
+            db.query(
+                models.Item.name.label("item_name"),
+                models.Item.price.label("price"),
+                models.Item.quantity.label("quantity"),
+                models.Category.name.label("category_name"),
+            )
+            .join(models.Category, models.Item.category_id == models.Category.id)
+            .all()
         )
-        .join(models.Category, models.Item.category_id == models.Category.id)
-        .join(models.User, models.Category.owner_id == models.User.id)
-        .all()
-    )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field,EmailStr
+from pydantic import BaseModel, Field, EmailStr
 
 
-# ITEM 
+# =========================
+# ITEM
+# =========================
 class ItemCreate(BaseModel):
     name: str
     quantity: int
@@ -21,7 +23,9 @@ class ItemResponse(ItemCreate):
         from_attributes = True
 
 
-# CATEGORY 
+# =========================
+# CATEGORY
+# =========================
 class CategoryCreate(BaseModel):
     name: str
 
@@ -30,15 +34,17 @@ class CategoryUpdate(BaseModel):
     name: str
 
 
-class CategoryResponse(CategoryCreate):
+class CategoryResponse(BaseModel):
     id: int
-    items: list[ItemResponse] = Field(default_factory=list)
+    name: str
 
     class Config:
         from_attributes = True
 
 
-# USER 
+# =========================
+# USER
+# =========================
 class UserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=50)
     email: EmailStr
@@ -48,9 +54,10 @@ class UserUpdate(BaseModel):
     name: str
 
 
-class UserResponse(UserCreate):
+class UserResponse(BaseModel):
     id: int
-    categories: list[CategoryResponse] = Field(default_factory=list)
+    name: str
+    email: EmailStr
 
     class Config:
         from_attributes = True
