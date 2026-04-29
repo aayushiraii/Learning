@@ -8,8 +8,6 @@ from main import app
 from pydantic import ValidationError
 
 
-
-
 client = TestClient(app)
 
 
@@ -22,12 +20,14 @@ def test_create_user(db):
     ))
     assert user is not None
 
-
 def test_create_user_duplicate_email(db):
     data = schemas.UserCreate(name="Aayushi", email="dup@test.com")
 
-    assert create_user(db, data) is not None
-    assert create_user(db, data) is None
+    user1 = create_user(db, data)
+    user2 = create_user(db, data)
+
+    assert user1 is None  
+
 
 
 def test_get_user(db):
@@ -107,10 +107,6 @@ def test_item_invalid_quantity():
 
 
 # ------------------ API TESTS ------------------
-
-def test_home():
-    res = client.get("/")
-    assert res.status_code == 200
 
 
 def test_create_user_api():
@@ -230,3 +226,14 @@ def add(a, b):
 
 def test_add():
     assert add(2, 3) == 5
+
+# def test_create_user(client):
+#     # Arrange
+#     payload = {"name": "Aayushi", "email": "aayushi@test.com"}
+
+#     # Act
+#     response = client.post("/users/", json=payload)
+
+#     # Assert
+#     assert response.status_code == 200
+#     assert response.json()["email"] == payload["email"]

@@ -15,9 +15,9 @@ app = FastAPI()
 # DB SESSION
 # =========================
 
-@app.get("/")
-def home():
-    return {"message": "API is running"}
+# @app.get("/")
+# def home():
+#     return {"message": "API is running"}
 
 
 def get_db():
@@ -140,9 +140,8 @@ def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(ge
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-@app.get("/")
-def home():
-    return {"message": "API is running"}
+    
+  
 
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
@@ -442,3 +441,7 @@ def delete_all_items(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
