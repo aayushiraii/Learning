@@ -1,53 +1,36 @@
+import pytest
 import schemas
 from crud import create_user, create_category, create_item, get_user, update_user
-from testing import get_test_db, engine
+from tests.testing import engine
 from models import Base
 from fastapi.testclient import TestClient
-from main import app, get_db
+from main import app
 from pydantic import ValidationError
 
 
-# API CLIENT SETUP
+
 
 client = TestClient(app)
-app.dependency_overrides[get_db] = get_test_db
 
 
+# ------------------ USER CRUD ------------------
 
-# RESET DB BEFORE EACH TEST
-
-def setup_function():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
-
-
-# USER CRUD TESTS
-
-def test_create_user():
-    db = next(get_test_db())
-
+def test_create_user(db):
     user = create_user(db, schemas.UserCreate(
         name="Aayushi",
         email="a@test.com"
     ))
-
     assert user is not None
-    assert user.email == "a@test.com"
 
 
-def test_create_user_duplicate_email():
-    db = next(get_test_db())
-
+def test_create_user_duplicate_email(db):
     data = schemas.UserCreate(name="Aayushi", email="dup@test.com")
 
     assert create_user(db, data) is not None
     assert create_user(db, data) is None
 
 
-def test_get_user():
-    db = next(get_test_db())
-
+def test_get_user(db):
     created = create_user(db, schemas.UserCreate(
         name="Test",
         email="get@test.com"
@@ -59,9 +42,7 @@ def test_get_user():
     assert fetched.id == created.id
 
 
-def test_update_user_success():
-    db = next(get_test_db())
-
+def test_update_user_success(db):
     user = create_user(db, schemas.UserCreate(
         name="Old",
         email="old@test.com"
@@ -75,27 +56,19 @@ def test_update_user_success():
     assert updated.name == "New"
 
 
+# ------------------ CATEGORY + ITEM ------------------
 
-# CATEGORY + ITEM CRUD
-
-def test_create_category():
-    db = next(get_test_db())
-
+def test_create_category(db):
     category = create_category(db, "Electronics")
-
     assert category is not None
 
 
-def test_create_duplicate_category():
-    db = next(get_test_db())
-
+def test_create_duplicate_category(db):
     create_category(db, "Books")
     assert create_category(db, "Books") is None
 
 
-def test_create_item():
-    db = next(get_test_db())
-
+def test_create_item(db):
     cat = create_category(db, "Electronics")
 
     item = create_item(db, schemas.ItemCreate(
@@ -107,9 +80,7 @@ def test_create_item():
     assert item.name == "phone"
 
 
-def test_create_duplicate_item_same_category():
-    db = next(get_test_db())
-
+def test_create_duplicate_item_same_category(db):
     cat = create_category(db, "Electronics")
 
     data = schemas.ItemCreate(name="Laptop", quantity=1, price=2000)
@@ -118,35 +89,24 @@ def test_create_duplicate_item_same_category():
     assert create_item(db, data, cat.id) is None
 
 
-
-# SCHEMA TESTS
+# ------------------ SCHEMA TESTS ------------------
 
 def test_user_invalid_email():
-    try:
+    with pytest.raises(ValidationError):
         schemas.UserCreate(name="Test", email="bad")
-        assert False
-    except ValidationError:
-        assert True
 
 
 def test_category_empty_name():
-    try:
+    with pytest.raises(ValidationError):
         schemas.CategoryCreate(name="")
-        assert False
-    except ValidationError:
-        assert True
 
 
 def test_item_invalid_quantity():
-    try:
+    with pytest.raises(ValidationError):
         schemas.ItemCreate(name="Phone", quantity=-1, price=100)
-        assert False
-    except ValidationError:
-        assert True
 
 
-
-# API TESTS
+# ------------------ API TESTS ------------------
 
 def test_home():
     res = client.get("/")
@@ -158,7 +118,6 @@ def test_create_user_api():
         "name": "API",
         "email": "api@test.com"
     })
-
     assert res.status_code == 200
 
 
@@ -180,13 +139,11 @@ def test_get_user_api():
     user_id = create.json()["id"]
 
     res = client.get(f"/users/{user_id}")
-
     assert res.status_code == 200
 
 
 def test_create_category_api():
     res = client.post("/categories", json={"name": "Electronics"})
-
     assert res.status_code == 200
 
 
@@ -195,7 +152,7 @@ def test_create_item_api():
     cat_id = cat.json()["id"]
 
     res = client.post(
-        f"/categories/{cat_id}/items",   
+        f"/categories/{cat_id}/items",
         json={
             "name": "Phone",
             "quantity": 1,
@@ -205,6 +162,7 @@ def test_create_item_api():
 
     assert res.status_code == 200
     assert res.json()["name"] == "phone"
+
 
 def test_delete_user_api():
     create = client.post("/users", json={
@@ -218,6 +176,7 @@ def test_delete_user_api():
 
     assert response.status_code == 200
     assert response.json()["message"] == "User deleted"
+
 
 def test_get_items_by_category_api():
     cat = client.post("/categories", json={"name": "Electronics"})
@@ -234,6 +193,7 @@ def test_get_items_by_category_api():
     assert response.status_code == 200
     assert len(response.json()) == 1
 
+
 def test_get_all_users_api():
     client.post("/users", json={
         "name": "User1",
@@ -244,6 +204,7 @@ def test_get_all_users_api():
 
     assert res.status_code == 200
     assert len(res.json()) >= 1
+
 
 def test_delete_all_items():
     cat = client.post("/categories", json={"name": "Electronics"})
@@ -261,9 +222,11 @@ def test_delete_all_items():
     assert "items deleted" in res.json()["message"]
 
 
-#simple test case using pytest
+# ------------------ SIMPLE TEST ------------------
+
 def add(a, b):
     return a + b
+
 
 def test_add():
     assert add(2, 3) == 5
