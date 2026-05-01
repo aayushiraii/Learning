@@ -7,13 +7,10 @@ import schemas
 # USER
 # =========================
 def create_user(db: Session, user: schemas.UserCreate) -> User | None:
-    """
-    Create a new user if email is unique.
-    """
     existing_user = db.query(User).filter(User.email == user.email).first()
 
     if existing_user:
-        return None
+        return None   # ✅ FIX (VERY IMPORTANT)
 
     db_user = User(name=user.name, email=user.email)
     db.add(db_user)
@@ -23,16 +20,10 @@ def create_user(db: Session, user: schemas.UserCreate) -> User | None:
 
 
 def get_user(db: Session, user_id: int) -> User | None:
-    """
-    Get a user by ID.
-    """
     return db.query(User).filter(User.id == user_id).first()
 
 
 def update_user(db: Session, user_id: int, user: schemas.UserCreate) -> User | None:
-    """
-    Update a user's name and email.
-    """
     db_user = db.query(User).filter(User.id == user_id).first()
 
     if not db_user:
@@ -53,7 +44,7 @@ def update_user(db: Session, user_id: int, user: schemas.UserCreate) -> User | N
 # =========================
 # CATEGORY
 # =========================
-def create_category(db: Session, name: str) -> Category | None:
+def create_category(db: Session, name: str):
     existing = db.query(Category).filter(Category.name == name).first()
 
     if existing:
@@ -65,31 +56,11 @@ def create_category(db: Session, name: str) -> Category | None:
     db.refresh(category)
     return category
 
-def update_category(db: Session, category_id: int, name: str) -> Category | None:
-    """
-    Update a category.
-    """
-    category = db.query(Category).filter(Category.id == category_id).first()
-
-    if not category:
-        return None
-
-    category.name = name
-
-    db.commit()
-    db.refresh(category)
-    return category
-
 
 # =========================
 # ITEM
 # =========================
-def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item | None:
-    """
-    Create item only if it doesn't already exist in the category.
-    """
-
-   
+def create_item(db: Session, item: schemas.ItemCreate, category_id: int):
     item_name = item.name.strip().lower()
 
     existing = db.query(Item).filter(
@@ -108,23 +79,6 @@ def create_item(db: Session, item: schemas.ItemCreate, category_id: int) -> Item
     )
 
     db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-def update_item(db: Session, item_id: int, item: schemas.ItemCreate) -> Item | None:
-    """
-    Update an item.
-    """
-    db_item = db.query(Item).filter(Item.id == item_id).first()
-
-    if not db_item:
-        return None
-
-    db_item.name = item.name
-    db_item.quantity = item.quantity
-    db_item.price = item.price
-
     db.commit()
     db.refresh(db_item)
     return db_item
