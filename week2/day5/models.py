@@ -3,7 +3,9 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-#user
+# =========================
+# USER
+# =========================
 class User(Base):
     __tablename__ = "users"
 
@@ -13,7 +15,9 @@ class User(Base):
     dept = Column(String)
 
 
-#category
+# =========================
+# CATEGORY
+# =========================
 class Category(Base):
     __tablename__ = "categories"
 
@@ -27,7 +31,9 @@ class Category(Base):
     )
 
 
-#items
+# =========================
+# ITEM
+# =========================
 class Item(Base):
     __tablename__ = "items"
 

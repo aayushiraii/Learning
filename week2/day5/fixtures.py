@@ -1,10 +1,11 @@
 import pytest
-import schemas
+import schemas as schemas
 from crud import create_user, create_category, create_item, get_user, update_user
 from tests.testing import TestingSessionLocal
 from fastapi.testclient import TestClient
 from main import app, get_db
 from pydantic import ValidationError
+#from .testing import DATABASE_URL
 
 
 #  FIXTURES
@@ -26,6 +27,7 @@ def client(db):
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
 
 
 @pytest.fixture()
@@ -60,8 +62,6 @@ def test_create_user_duplicate_email(db):
 
 
 #  CATEGORY + ITEM 
-
-
 
 def test_create_duplicate_category(db):
     create_category(db, "Books")
@@ -99,10 +99,6 @@ def test_create_user_duplicate_api(client):
     res = client.post("/users", json=user)
 
     assert res.status_code != 200
-
-
-
-
 
 def test_delete_user_api(client):
     create = client.post("/users", json={

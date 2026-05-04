@@ -1,5 +1,5 @@
 import pytest
-import schemas
+import schemas as schemas
 from crud import create_user, create_category, create_item, get_user, update_user
 from tests.testing import engine
 from models import Base
@@ -26,7 +26,7 @@ def test_create_user_duplicate_email(db):
     user1 = create_user(db, data)
     user2 = create_user(db, data)
 
-    assert user1 is None  
+    assert user2 is None  
 
 
 

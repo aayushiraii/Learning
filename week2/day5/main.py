@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-import models, schemas, crud
+import models as models, schemas as schemas, crud as crud
 from database import SessionLocal, engine
 
 # Create tables
@@ -11,9 +11,9 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-
+# =========================
 # DB SESSION
-
+# =========================
 
 # @app.get("/")
 # def home():
@@ -34,9 +34,9 @@ def get_db():
         db.close()
 
 
-
+# =========================
 # USER ROUTES
-
+# =========================
 @app.post("/users", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
@@ -174,8 +174,9 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =========================
 # CATEGORY ROUTES
-
+# =========================
 @app.post("/categories")
 def create_category(data: schemas.CategoryCreate, db: Session = Depends(get_db)):
     """
@@ -275,9 +276,9 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
+# =========================
 # ITEM ROUTES
-
+# =========================
 @app.post("/categories/{category_id}/items")
 def create_item(category_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)):
     """

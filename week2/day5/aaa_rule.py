@@ -1,10 +1,11 @@
 import pytest
-import schemas
+import schemas as schemas
 from crud import create_user, create_category, create_item, get_user, update_user
 from tests.testing import TestingSessionLocal
 from fastapi.testclient import TestClient
 from main import app, get_db
 from pydantic import ValidationError
+from tests.testing import DATABASE_URL
 
 
 #FIXTURES 
@@ -28,9 +29,6 @@ def client(db):
 
 
 # USER CRUD 
-
-
-
 
 def test_create_user_duplicate_email(db):
     # Arrange
@@ -60,9 +58,6 @@ def test_create_duplicate_category(db):
 
     # Assert
     assert duplicate is None
-
-
-
 
 
 #  SCHEMA TESTS 
@@ -102,10 +97,6 @@ def test_create_user_duplicate_api(client):
     assert res.status_code != 200
 
 
-
-#
-
-
 def test_delete_user_api(client):
     # Arrange
     create = client.post("/users", json={
@@ -137,9 +128,7 @@ def test_get_all_users_api(client):
     assert res.status_code == 200
     assert len(res.json()) >= 1
 
-
-
-# SIMPLE TEST 
+ #SIMPLE TEST 
 
 def add(a, b):
     return a + b
@@ -154,3 +143,5 @@ def test_add():
 
     # Assert
     assert result == 5
+    
+    

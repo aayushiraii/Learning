@@ -1,7 +1,7 @@
 #Parameterised tests are basically single test with multiple times with different inputs
 
 import pytest
-import schemas
+import schemas as schemas
 from crud import create_user
 
 
@@ -32,3 +32,4 @@ def test_create_user(db, name, email):
 def test_invalid_emails(email):
     with pytest.raises(Exception):   # or ValidationError if you prefer
         schemas.UserCreate(name="Test", email=email)
+        
