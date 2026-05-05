@@ -36,11 +36,20 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = crud.authenticate_user(db, user.email, user.password)
+    print(f"the user info: {db_user}")
 
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"token": "secret123"}
+    from auth import create_access_token
+
+    token = create_access_token({"sub": db_user.email})
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
 
 
 @app.get("/users", response_model=list[schemas.UserResponse])
