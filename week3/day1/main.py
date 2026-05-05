@@ -3,18 +3,45 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 import models, schemas, crud
-from database import engine, get_db   
+from database import engine, get_db
+
+from auth import (
+    create_access_token,
+    create_refresh_token,
+    decode_token
+)
+
+from pydantic import BaseModel
 
 # create tables
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FastAPI Full App")
+#auth 
 
 
-#check
-def get_current_user(token: str = Header(None)):
-    if token != "secret123":
-        raise HTTPException(status_code=401, detail="Not logged in")
+def get_current_user(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing token")
+
+    try:
+        scheme, token = authorization.split()
+
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+
+        payload = decode_token(token)
+
+        if not payload:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="Wrong token type")
+
+        return payload["sub"]
+
+    except Exception:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 #user
@@ -33,27 +60,57 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already exists")
 
 
+#login
 @app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+
     db_user = crud.authenticate_user(db, user.email, user.password)
-    print(f"the user info: {db_user}")
 
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    from auth import create_access_token
-
-    token = create_access_token({"sub": db_user.email})
+    access_token = create_access_token({"sub": db_user.email})
+    refresh_token = create_refresh_token({"sub": db_user.email})
 
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
 
 
+#refresh
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
+
+@app.post("/refresh")
+def refresh_token(payload: RefreshRequest):
+
+    data = decode_token(payload.refresh_token)
+
+    if not data:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    if data.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Not refresh token")
+
+    email = data.get("sub")
+
+    new_access_token = create_access_token({"sub": email})
+
+    return {
+        "access_token": new_access_token,
+        "token_type": "bearer"
+    }
+
+
+#users
 @app.get("/users", response_model=list[schemas.UserResponse])
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
     return db.query(models.User).all()
 
 
@@ -68,7 +125,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/users/{user_id}", response_model=schemas.UserResponse)
-def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int,
+    user: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     updated_user = crud.update_user(db, user_id, user)
 
     if not updated_user:
@@ -78,7 +140,11 @@ def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(ge
 
 
 @app.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not user:
@@ -95,7 +161,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 def create_category(
     data: schemas.CategoryCreate,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
     category = crud.create_category(db, data.name)
 
@@ -115,7 +181,7 @@ def update_category(
     category_id: int,
     data: schemas.CategoryCreate,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)   # protect update
+    user=Depends(get_current_user)
 ):
     updated = crud.update_category(db, category_id, data.name)
 
@@ -129,7 +195,7 @@ def update_category(
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)   # protect delete
+    user=Depends(get_current_user)
 ):
     category = db.query(models.Category).filter(models.Category.id == category_id).first()
 
@@ -148,7 +214,7 @@ def create_item(
     category_id: int,
     item: schemas.ItemCreate,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
     new_item = crud.create_item(db, item, category_id)
 
@@ -173,7 +239,7 @@ def update_item(
     item_id: int,
     item: schemas.ItemCreate,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)   # protect update
+    user=Depends(get_current_user)
 ):
     updated = crud.update_item(db, item_id, item)
 
@@ -187,7 +253,7 @@ def update_item(
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)   # protect delete
+    user=Depends(get_current_user)
 ):
     item = db.query(models.Item).filter(models.Item.id == item_id).first()
 
@@ -198,5 +264,3 @@ def delete_item(
     db.commit()
 
     return {"message": "Item deleted"}
-
-
