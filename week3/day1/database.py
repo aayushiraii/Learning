@@ -10,7 +10,6 @@ DATABASE_URL = os.getenv("AUTH_DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("auth_database_url is not set in .env file")
 
-# optional fix for older postgres URL format
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 

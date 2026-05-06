@@ -39,3 +39,6 @@ class ItemResponse(ItemCreate):
     id: int
 
     model_config = {"from_attributes": True}
+
+class RefreshRequest(BaseModel):
+    refresh_token: str

@@ -1,42 +1,28 @@
 from fastapi import FastAPI, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from pydantic import BaseModel
+from auth import create_access_token, create_refresh_token, verify_token_type
+from jose import ExpiredSignatureError
 import models, schemas, crud
 from database import engine, get_db
-
-from auth import (
-    create_access_token,
-    create_refresh_token,
-    decode_token
-)
-
-from pydantic import BaseModel
+from auth import create_access_token, decode_token
 
 # create tables
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FastAPI Full App")
-#auth 
 
 
-def get_current_user(authorization: str = Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing token")
-
+#auth
+def get_current_user(authorization: str = Header(...)):
     try:
         scheme, token = authorization.split()
 
         if scheme.lower() != "bearer":
-            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+            raise HTTPException(status_code=401, detail="Invalid scheme")
 
-        payload = decode_token(token)
-
-        if not payload:
-            raise HTTPException(status_code=401, detail="Invalid token")
-
-        if payload.get("type") != "access":
-            raise HTTPException(status_code=401, detail="Wrong token type")
+        payload = verify_token_type(token, "access")
 
         return payload["sub"]
 
@@ -44,7 +30,8 @@ def get_current_user(authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-#user
+# USER - CREATE
+
 @app.post("/users", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     try:
@@ -60,7 +47,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already exists")
 
 
-#login
+
 @app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
@@ -70,42 +57,35 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token({"sub": db_user.email})
+
+    # internally you STILL create refresh token
     refresh_token = create_refresh_token({"sub": db_user.email})
 
     return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "access_token": access_token
     }
 
-
-#refresh
 class RefreshRequest(BaseModel):
     refresh_token: str
 
 
 @app.post("/refresh")
-def refresh_token(payload: RefreshRequest):
+def refresh_token(data: RefreshRequest):
 
-    data = decode_token(payload.refresh_token)
+    payload = verify_token_type(data.refresh_token, "refresh")
 
-    if not data:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    if data.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Not refresh token")
-
-    email = data.get("sub")
+    email = payload.get("sub")
 
     new_access_token = create_access_token({"sub": email})
 
     return {
-        "access_token": new_access_token,
-        "token_type": "bearer"
+        "access_token": new_access_token
     }
 
 
-#users
+# =========================
+# USERS
+# =========================
 @app.get("/users", response_model=list[schemas.UserResponse])
 def get_all_users(
     db: Session = Depends(get_db),
@@ -156,7 +136,9 @@ def delete_user(
     return {"message": "User deleted"}
 
 
-#category
+# =========================
+# CATEGORY
+# =========================
 @app.post("/categories")
 def create_category(
     data: schemas.CategoryCreate,
@@ -208,7 +190,9 @@ def delete_category(
     return {"message": "Category deleted"}
 
 
-#items
+# =========================
+# ITEMS
+# =========================
 @app.post("/categories/{category_id}/items")
 def create_item(
     category_id: int,
@@ -264,3 +248,8 @@ def delete_item(
     db.commit()
 
     return {"message": "Item deleted"}
+
+
+@app.get("/protected")
+def protected(user=Depends(get_current_user)):
+    return {"message": f"Hello {user}, you are authorized"}
