@@ -28,7 +28,7 @@ def get_current_user(authorization: str = Header(...)):
             raise HTTPException(status_code=401, detail="Invalid scheme")
 
         payload = verify_token_type(token, "access")
-        return payload  # ✅ returns role also
+        return payload 
 
     except Exception:
         raise HTTPException(status_code=401, detail="Unauthorized")
