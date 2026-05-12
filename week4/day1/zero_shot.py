@@ -37,18 +37,17 @@ while True:
 
     user_input = input("YOU: ")
 
-    # exit condition
+    
     if user_input.lower() == "exit":
         print("Chat ended.")
         break
 
-    # add user message
     messages.append({
         "role": "user",
         "content": user_input
     })
 
-    # get AI response
+   
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
         messages=messages
@@ -58,7 +57,7 @@ while True:
 
     print("AI:", answer)
 
-    # save assistant reply
+    
     messages.append({
         "role": "assistant",
         "content": answer
