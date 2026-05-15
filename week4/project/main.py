@@ -1,14 +1,13 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 from llm import ask_llm
 from cost import calculate_cost
+from schemas import (
+    QueryRequest,
+    QueryResponse
+)
 
 app = FastAPI()
-
-
-class QueryRequest(BaseModel):
-    question: str
 
 
 @app.get("/")
@@ -19,15 +18,15 @@ def home():
     }
 
 
-@app.post("/query")
+@app.post("/query", response_model=QueryResponse)
 def query_llm(request: QueryRequest):
 
     answer, usage = ask_llm(request.question)
 
-    cost_data = calculate_cost(usage)
+    usage_data = calculate_cost(usage)
 
-    return {
-        "question": request.question,
-        "answer": answer,
-        "usage": cost_data
-    }
+    return QueryResponse(
+        question=request.question,
+        answer=answer,
+        usage=usage_data
+    )

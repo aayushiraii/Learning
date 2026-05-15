@@ -1,6 +1,10 @@
-INPUT_PRICE_PER_1M = 0.40
-CACHED_INPUT_PRICE_PER_1M = 0.10
-OUTPUT_PRICE_PER_1M = 1.60
+from const import (
+    INPUT_PRICE_PER_1M,
+    CACHED_INPUT_PRICE_PER_1M,
+    OUTPUT_PRICE_PER_1M
+)
+
+from schemas import UsageResponse
 
 
 def calculate_cost(usage):
@@ -33,12 +37,12 @@ def calculate_cost(usage):
 
     total_cost = input_cost + cached_cost + output_cost
 
-    return {
-        "prompt_tokens": prompt_tokens,
-        "cached_tokens": cached_tokens,
-        "completion_tokens": completion_tokens,
-        "input_cost": input_cost,
-        "cached_cost": cached_cost,
-        "output_cost": output_cost,
-        "total_cost": total_cost
-    }
+    return UsageResponse(
+        prompt_tokens=prompt_tokens,
+        cached_tokens=cached_tokens,
+        completion_tokens=completion_tokens,
+        input_cost=input_cost,
+        cached_cost=cached_cost,
+        output_cost=output_cost,
+        total_cost=total_cost
+    )

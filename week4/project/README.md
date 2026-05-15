@@ -21,10 +21,9 @@ This project was built while learning:
 * FastAPI backend
 * OpenAI integration
 * Prompt handling using system prompts
-* Technical assistant behavior
 * Token usage tracking
 * Cost calculation
-* JSON API responses
+
 
 
 
@@ -32,10 +31,6 @@ This project was built while learning:
 
 - Python
 - FastAPI
-- OpenAI API
-- Pydantic
-- Uvicorn
-- python-dotenv
 
 
 
