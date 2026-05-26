@@ -2,9 +2,7 @@ from langchain_community.document_loaders import (
     UnstructuredWordDocumentLoader
 )
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-from main import store_embedding
+from main import process_documents
 
 import os
 
@@ -30,31 +28,8 @@ def load_docx_files(folder_path):
     return documents
 
 
-docx_docs = load_docx_files("data")
+docx_docs = load_docx_files(os.getenv("DATA_FILE"))
 
-# Chunking Configuration
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=50
-)
-
-for doc in docx_docs:
-
-    text = doc.page_content
-
-    metadata = doc.metadata
-
-    chunks = text_splitter.split_text(text)
-
-    print(f"\nTotal Chunks Created: {len(chunks)}")
-
-    for index, chunk in enumerate(chunks, start=1):
-
-        print(f"\nStoring Chunk {index}")
-
-        print(f"Chunk Length: {len(chunk)}")
-
-        store_embedding(chunk, metadata)
-
+process_documents(docx_docs)
 
 print("\nAll DOCX Embeddings Stored")

@@ -64,7 +64,7 @@ try:
                embedding <-> %s::vector AS distance
         FROM documents
         ORDER BY distance
-        LIMIT 3;
+        LIMIT 5;
         """,
         (query_embedding,)
     )
