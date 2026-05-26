@@ -3,3 +3,5 @@ venv1/
 .venv/
 __pycache__/
 .env
+week5/day1/data/retrieval.log
+week5/day1/retrieval.log
