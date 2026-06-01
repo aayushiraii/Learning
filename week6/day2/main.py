@@ -1,3 +1,4 @@
+
 import os
 import logging
 
@@ -33,16 +34,25 @@ from langchain_postgres import PGVector
 from langchain.chains import RetrievalQA
 
 
+# =========================
+# Load Environment Variables
+# =========================
 load_dotenv()
 
 
+# =========================
+# FastAPI App
+# =========================
 app = FastAPI(
     title="AI Agent API",
-    description="FastAPI AI Agent with RAG",
+    description="FastAPI Agent with RAG and Tools",
     version="1.0"
 )
 
 
+# =========================
+# Logging
+# =========================
 logging.basicConfig(
     filename="logs.log",
     level=logging.INFO,
@@ -50,6 +60,9 @@ logging.basicConfig(
 )
 
 
+# =========================
+# Request Models
+# =========================
 class ChatRequest(BaseModel):
     query: str
 
@@ -68,11 +81,17 @@ class ChatResponse(BaseModel):
     status: str
 
 
+# =========================
+# Load PDF
+# =========================
 loader = PyPDFLoader("report.pdf")
 
 documents = loader.load()
 
 
+# =========================
+# Split Documents
+# =========================
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,
     chunk_overlap=100
@@ -81,12 +100,21 @@ text_splitter = RecursiveCharacterTextSplitter(
 docs = text_splitter.split_documents(documents)
 
 
+# =========================
+# Embeddings
+# =========================
 embeddings = OpenAIEmbeddings()
 
 
+# =========================
+# PostgreSQL Connection
+# =========================
 CONNECTION = os.getenv("DB_AGENT")
 
 
+# =========================
+# Vector Store
+# =========================
 vectorstore = PGVector(
     embeddings=embeddings,
     collection_name="my_docs",
@@ -94,21 +122,34 @@ vectorstore = PGVector(
 )
 
 
-# Keeping ingestion here as requested
+# =========================
+# Add Documents
+# NOTE:
+# Run only once ideally
+# =========================
 vectorstore.add_documents(docs)
 
 
+# =========================
+# Retriever
+# =========================
 retriever = vectorstore.as_retriever(
     search_kwargs={"k": 10}
 )
 
 
+# =========================
+# LLM
+# =========================
 llm = ChatOpenAI(
     model=os.getenv("MODEL"),
     temperature=0
 )
 
 
+# =========================
+# QA Chain
+# =========================
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=retriever,
@@ -117,6 +158,9 @@ qa_chain = RetrievalQA.from_chain_type(
 )
 
 
+# =========================
+# Tools
+# =========================
 @tool
 def calculator(expression: str) -> str:
     """
@@ -209,6 +253,9 @@ def document_search(query: str) -> dict:
     }
 
 
+# =========================
+# Tool List
+# =========================
 tools = [
     calculator,
     weather,
@@ -217,6 +264,9 @@ tools = [
 ]
 
 
+# =========================
+# Prompt
+# =========================
 prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -252,6 +302,9 @@ ALWAYS use document_search first before answering.
 )
 
 
+# =========================
+# Create Agent
+# =========================
 agent = create_tool_calling_agent(
     llm=llm,
     tools=tools,
@@ -259,6 +312,9 @@ agent = create_tool_calling_agent(
 )
 
 
+# =========================
+# Agent Executor
+# =========================
 agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
@@ -269,12 +325,15 @@ agent_executor = AgentExecutor(
 )
 
 
-
+# =========================
+# API Endpoint
+# =========================
 @app.post("/agent", response_model=ChatResponse)
 def run_agent(request: ChatRequest):
 
     try:
 
+        # Empty Query Validation
         if not request.query.strip():
 
             return {
@@ -285,16 +344,19 @@ def run_agent(request: ChatRequest):
                 "status": "error"
             }
 
+        # Log Query
         logging.info(
             f"User Query: {request.query}"
         )
 
+        # Agent Response
         response = agent_executor.invoke(
             {
                 "input": request.query
             }
         )
 
+        # Extract Tool Names
         tool_used = []
 
         for step in response.get("intermediate_steps", []):
@@ -309,6 +371,7 @@ def run_agent(request: ChatRequest):
 
         sources = []
 
+        # Handle document_search response
         if isinstance(final_output, dict):
 
             answer_text = final_output.get("answer", "")
@@ -319,6 +382,7 @@ def run_agent(request: ChatRequest):
 
             answer_text = final_output
 
+        # Log Response
         logging.info(
             f"Agent Response: {answer_text}"
         )
@@ -333,7 +397,7 @@ def run_agent(request: ChatRequest):
 
     except Exception as e:
 
-        logging.exception("Agent execution failed")
+        logging.error(str(e))
 
         return {
             "query": request.query,
