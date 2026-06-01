@@ -269,13 +269,6 @@ agent_executor = AgentExecutor(
 )
 
 
-@app.get("/")
-def home():
-
-    return {
-        "message": "AI Agent API Running"
-    }
-
 
 @app.post("/agent", response_model=ChatResponse)
 def run_agent(request: ChatRequest):
