@@ -1,0 +1,77 @@
+2026-05-29 12:44:00,955 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 12:44:15,804 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 12:44:56,982 - INFO - User Query: what can i ask u?
+2026-05-29 12:44:58,506 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 12:45:05,223 - INFO - Agent Response: You can ask me a variety of questions, including:
+
+1. **Document-related questions**: If you have specific documents or PDFs, I can help you find information within them.
+2. **Learning and roadmaps**: I can assist with week-wise learning plans or roadmaps for various topics, especially in AI and technical fields.
+3. **AI concepts**: If you have questions about artificial intelligence concepts, I can provide explanations and insights.
+4. **Math calculations**: You can ask me to perform mathematical calculations.
+5. **Weather information**: I can provide current weather information for specific cities.
+6. **Company-related information**: If you need details about a specific company, I can help with that as well.
+
+Feel free to ask anything within these categories!
+2026-05-29 12:49:29,824 - INFO - User Query: what did i learn in week3?
+2026-05-29 12:49:31,914 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 12:49:32,528 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 12:49:34,268 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 12:49:34,939 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 12:49:35,691 - INFO - Agent Response: In Week 3, you learned about Security & API Design. The key topics covered included:
+
+- Backend API development
+- Database integration
+- Automated testing strategies
+- Writing maintainable test suites
+
+The objective was to build secure and production-ready APIs.
+2026-05-29 13:42:46,686 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 13:42:59,972 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 13:43:04,714 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 13:43:24,578 - INFO - User Query: 2+0
+2026-05-29 13:43:33,481 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 13:43:34,814 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 13:43:35,080 - INFO - Agent Response: The result of \( 2 + 0 \) is \( 2 \).
+2026-05-29 13:44:05,829 - INFO - User Query: what is bitcot
+2026-05-29 13:44:08,092 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 13:44:09,014 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 13:44:10,203 - INFO - Agent Response: It seems that I couldn't find any specific information about "Bitcot." It might be a lesser-known company or organization. If you have any additional context or details about what Bitcot does or its industry, I might be able to help you better.
+2026-05-29 15:27:00,794 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 15:27:12,356 - INFO - User Query: what is rag
+2026-05-29 15:27:14,310 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 15:27:16,465 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 15:27:18,412 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 15:27:19,430 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 15:27:20,915 - INFO - Agent Response: RAG stands for Retrieval-Augmented Generation. It is a system that combines the retrieval of relevant information from a dataset with the generation of responses. This approach allows for more context-aware and accurate interactions, such as in applications like "Chat with Your Data." RAG leverages various data ingestion methods and embedding-based retrieval concepts to enhance the capabilities of language models.
+2026-05-29 16:28:24,483 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 16:28:31,964 - INFO - User Query: hi
+2026-05-29 16:28:33,902 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 16:28:34,217 - INFO - Agent Response: Hello! How can I assist you today?
+2026-05-29 16:28:56,241 - INFO - User Query: hi, i am kaushal
+2026-05-29 16:28:58,077 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 16:28:58,336 - INFO - Agent Response: Hello Kaushal! How can I assist you today?
+2026-05-29 16:29:25,150 - INFO - User Query: what is 2+2
+2026-05-29 16:29:26,443 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 16:29:27,266 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 16:29:27,466 - INFO - Agent Response: The result of 2 + 2 is 4.
+2026-05-29 17:56:40,948 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 17:56:54,523 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 17:57:19,570 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 17:57:39,029 - INFO - User Query: what is rag
+2026-05-29 17:57:41,317 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 17:57:44,038 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-05-29 17:57:46,604 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 17:57:48,647 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-29 17:57:51,193 - INFO - Agent Response: RAG stands for Retrieval-Augmented Generation. It is a system designed to enhance the capabilities of language models by integrating retrieval mechanisms. This allows the model to access and utilize external data sources to generate more accurate and contextually relevant responses.
+
+In the context of building a "Chat with Your Data" system using RAG, the process involves data ingestion from various formats such as PDF, CSV, DOCX, and PPTX, and utilizing tools like LangChain loaders. This approach aims to improve the interaction and information retrieval capabilities of AI systems.
+2026-06-01 11:25:44,457 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-06-01 11:59:20,423 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-06-01 11:59:41,356 - INFO - User Query: what is python
+2026-06-01 11:59:43,459 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 11:59:44,789 - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2026-06-01 11:59:45,711 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 11:59:46,596 - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 11:59:48,878 - INFO - Agent Response: Python is a high-level programming language known for its readability and simplicity. It is widely used for various applications, including web development, data analysis, artificial intelligence, scientific computing, and more. Python emphasizes code readability and allows programmers to express concepts in fewer lines of code compared to other languages.
+
+If you need more specific information or details about Python, feel free to ask!
