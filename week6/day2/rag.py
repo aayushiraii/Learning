@@ -19,23 +19,26 @@ from langchain_postgres import PGVector
 
 from langchain.chains import RetrievalQA
 
-
 load_dotenv()
 
 
 # Load PDF
 loader = PyPDFLoader("report.pdf")
-
 documents = loader.load()
 
 
-# Split documents
+# Split Documents
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,
     chunk_overlap=100
 )
 
 docs = text_splitter.split_documents(documents)
+
+
+# Add user_id metadata
+for doc in docs:
+    doc.metadata["user_id"] = "user1"
 
 
 # Embeddings
@@ -54,12 +57,6 @@ vectorstore = PGVector(
 )
 
 
-# Retriever
-retriever = vectorstore.as_retriever(
-    search_kwargs={"k": 10}
-)
-
-
 # LLM
 llm = ChatOpenAI(
     model=os.getenv("MODEL"),
@@ -67,9 +64,20 @@ llm = ChatOpenAI(
 )
 
 
-# QA Chain
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=retriever,
-    chain_type="stuff"
-)
+def get_qa_chain(user_id: str):
+
+    retriever = vectorstore.as_retriever(
+        search_kwargs={
+            "k": 10,
+            "filter": {
+                "user_id": user_id
+            }
+        }
+    )
+
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        chain_type="stuff",
+        return_source_documents=True
+    )
