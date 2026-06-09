@@ -8,9 +8,15 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      pull-requests: read
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Run GitLeaks
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
