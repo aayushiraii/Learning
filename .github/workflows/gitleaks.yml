@@ -13,8 +13,10 @@ jobs:
       pull-requests: read
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run GitLeaks
         uses: gitleaks/gitleaks-action@v2
